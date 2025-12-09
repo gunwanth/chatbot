@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #007bff, #6610f2);
+            font-family: 'Roboto', sans-serif;
+            height: 100vh;
+            display: flex;
+            color: #333;
+        }
+        #sidebar {
+            width: 280px;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+        #new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        #new-chat-btn:hover {
+            background: #0056b3;
+        }
+        #chat-history {
+            margin-top: 20px;
+        }
+        .history-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #2a2a2a;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+            border-left: 3px solid transparent;
+            word-break: break-word;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            group: true;
+        }
+        .history-item:hover {
+            background: #3a3a3a;
+        }
+        .history-item.active {
+            background: #007bff;
+            border-left-color: #fff;
+        }
+        .history-title {
+            flex: 1;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        .history-item:hover .delete-btn {
+            opacity: 1;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .history-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 900px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        h2 {
+            font-size: 28px;
+            font-weight: 500;
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        #chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .user {
+            background: #007bff;
+            color: white;
+            text-align: right;
+            align-self: flex-end;
+            max-width: 80%;
+        }
+        .bot {
+            background: #e3e4e8;
+            color: #333;
+            text-align: left;
+            align-self: flex-start;
+            max-width: 80%;
+        }
+        .code-block {
+            background: #282c34;
+            color: #f8f9fa;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 12px 0;
+            border-radius: 6px;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .input-area {
+            display: flex;
+            gap: 12px;
+        }
+        input, button {
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+        input {
+            flex: 1;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .copy-btn {
+            margin-top: 8px;
+            background: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+        .file-upload-area {
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 200px;
+            }
+            .message {
+                max-width: 95%;
+            }
+            .delete-btn {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <button id="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
+        <div class="history-label">Chat History</div>
+        <div id="chat-history"></div>
+    </div>
+
+    <div id="main-container">
+        <div id="chat-container">
+            <h2>AI Chatbot</h2>
+            <div id="chat-box"></div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            <div class="file-upload-area">
+                <input type="file" id="file-input">
+                <input type="text" id="file-instructions" placeholder="Add instructions (optional)">
+                <button onclick="uploadFile()">Upload File</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let chatSessions = {}; // { sessionId: { title, messages, timestamp } }
+
+        // Initialize on page load
+        function initializeApp() {
+            loadChatHistory();
+            if (Object.keys(chatSessions).length === 0) {
+                createNewChat();
+            } else {
+                const firstSessionId = Object.keys(chatSessions)[0];
+                loadChat(firstSessionId);
+            }
+        }
+
+        function loadChatHistory() {
+            const saved = localStorage.getItem("chatSessions");
+            if (saved) {
+                chatSessions = JSON.parse(saved);
+            }
+            renderChatHistory();
+        }
+
+        function saveChatHistory() {
+            localStorage.setItem("chatSessions", JSON.stringify(chatSessions));
+            renderChatHistory();
+        }
+
+        function renderChatHistory() {
+            const historyDiv = document.getElementById("chat-history");
+            historyDiv.innerHTML = "";
+
+            Object.entries(chatSessions).forEach(([sessionId, session]) => {
+                const item = document.createElement("div");
+                item.className = `history-item ${sessionId === currentSessionId ? "active" : ""}`;
+                
+                const titleSpan = document.createElement("div");
+                titleSpan.className = "history-title";
+                titleSpan.innerText = session.title || "Untitled Chat";
+                titleSpan.onclick = () => loadChat(sessionId);
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "delete-btn";
+                deleteBtn.innerText = "Delete";
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteChat(sessionId);
+                };
+
+                item.appendChild(titleSpan);
+                item.appendChild(deleteBtn);
+                historyDiv.appendChild(item);
+            });
+        }
+
+        function createNewChat() {
+            fetch("/new-chat", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    const sessionId = data.session_id;
+                    chatSessions[sessionId] = {
+                        title: `Chat ${new Date().toLocaleTimeString()}`,
+                        messages: [],
+                        timestamp: Date.now()
+                    };
+                    saveChatHistory();
+                    loadChat(sessionId);
+                })
+                .catch(error => console.error("Error creating new chat:", error));
+        }
+
+        function deleteChat(sessionId) {
+            if (confirm("Are you sure you want to delete this chat?")) {
+                delete chatSessions[sessionId];
+                saveChatHistory();
+
+                if (currentSessionId === sessionId) {
+                    if (Object.keys(chatSessions).length > 0) {
+                        const firstSessionId = Object.keys(chatSessions)[0];
+                        loadChat(firstSessionId);
+                    } else {
+                        createNewChat();
+                    }
+                }
+            }
+        }
+
+        function loadChat(sessionId) {
+            currentSessionId = sessionId;
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = "";
+
+            const session = chatSessions[sessionId];
+            if (session && session.messages) {
+                session.messages.forEach(msg => {
+                    displayMessage(msg.type, msg.content);
+                });
+            }
+
+            renderChatHistory();
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function isCodeBlock(text) {
+            // Check if text contains code indicators: backticks, common keywords, indentation patterns
+            return text.includes("```") || 
+                   /^[ \t]{4,}/.test(text) ||
+                   /\b(def|function|class|return|import|export|const|let|var|if|for|while|try|catch)\b/.test(text) ||
+                   /[\{\}\[\]\(\)=;]/.test(text);
+        }
+
+        function displayMessage(type, content) {
+            const chatBox = document.getElementById("chat-box");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${type}`;
+
+            if (type === "bot" && isCodeBlock(content)) {
+                // Handle code blocks
+                if (content.includes("```")) {
+                    const parts = content.split("```");
+                    for (let i = 0; i < parts.length; i++) {
+                        if (i % 2 === 1) {
+                            // This is code
+                            const codeBlock = document.createElement("div");
+                            codeBlock.className = "code-block";
+                            codeBlock.innerHTML = `<pre>${parts[i].trim()}</pre>`;
+
+                            const copyButton = document.createElement("button");
+                            copyButton.className = "copy-btn";
+                            copyButton.innerText = "Copy Code";
+                            copyButton.onclick = () => {
+                                navigator.clipboard.writeText(parts[i].trim()).then(() => {
+                                    alert("Code copied to clipboard!");
+                                });
+                            };
+
+                            messageDiv.appendChild(codeBlock);
+                            messageDiv.appendChild(copyButton);
+                        } else if (parts[i].trim()) {
+                            // This is text explanation
+                            const textSpan = document.createElement("div");
+                            textSpan.innerText = parts[i].trim();
+                            messageDiv.appendChild(textSpan);
+                        }
+                    }
+                } else {
+                    messageDiv.innerText = content;
+                }
+            } else {
+                messageDiv.innerText = content;
+            }
+
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById("user-input").value.trim();
+            if (!userInput || !currentSessionId) return;
+
+            displayMessage("user", userInput);
+
+            chatSessions[currentSessionId].messages.push({ type: "user", content: userInput });
+            chatSessions[currentSessionId].title = userInput.substring(0, 30) + "...";
+
+            document.getElementById("user-input").value = "";
+
+            fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput, session_id: currentSessionId }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.response) {
+                        displayMessage("bot", data.response);
+                        chatSessions[currentSessionId].messages.push({ type: "bot", content: data.response });
+                    } else if (data.error) {
+                        displayMessage("bot", `Error: ${data.error}`);
+                        chatSessions[currentSessionId].messages.push({ type: "bot", content: `Error: ${data.error}` });
+                    }
+                    saveChatHistory();
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    displayMessage("bot", "An error occurred. Please try again later.");
+                    chatSessions[currentSessionId].messages.push({ type: "bot", content: "An error occurred. Please try again later." });
+                    saveChatHistory();
+                });
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById("file-input");
+            const file = fileInput.files[0];
+            const instructions = document.getElementById("file-instructions").value.trim();
+
+            if (!file) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            displayMessage("user", `Uploading: ${file.name}\nInstructions: ${instructions || "None"}`);
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("instructions", instructions);
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                const message = `File uploaded successfully. ${JSON.stringify(data.data_summary || data.response)}`;
+                displayMessage("bot", message);
+                chatSessions[currentSessionId].messages.push({ type: "bot", content: message });
+                saveChatHistory();
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("An error occurred during file upload.");
+            });
+        }
+
+        // Initialize app when page loads
+        window.addEventListener("DOMContentLoaded", initializeApp);
+    </script>
+</body>
+</html>
