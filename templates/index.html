@@ -6,6 +6,7 @@
     <title>AI Chatbot</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -18,6 +19,21 @@
             height: 100vh;
             display: flex;
             color: #333;
+            overflow: hidden;
+        }
+        #hamburger-menu {
+            display: none;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            font-size: 20px;
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1001;
+            border-radius: 6px;
         }
         #sidebar {
             width: 280px;
@@ -26,6 +42,19 @@
             padding: 20px;
             overflow-y: auto;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        #close-sidebar {
+            display: none;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            width: 100%;
+            font-size: 14px;
         }
         #new-chat-btn {
             width: 100%;
@@ -38,8 +67,9 @@
             cursor: pointer;
             margin-bottom: 20px;
             font-size: 14px;
+            transition: 0.2s;
         }
-        #new-chat-btn:hover {
+        #new-chat-btn:hover, #new-chat-btn:active {
             background: #0056b3;
         }
         #chat-history {
@@ -58,9 +88,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            group: true;
+            min-height: 44px;
         }
-        .history-item:hover {
+        .history-item:active {
             background: #3a3a3a;
         }
         .history-item.active {
@@ -86,11 +116,12 @@
             transition: opacity 0.2s;
             margin-left: 8px;
             flex-shrink: 0;
+            min-height: 32px;
         }
         .history-item:hover .delete-btn {
             opacity: 1;
         }
-        .delete-btn:hover {
+        .delete-btn:hover, .delete-btn:active {
             background: #c82333;
         }
         .history-label {
@@ -107,12 +138,13 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow: hidden;
         }
         #chat-container {
             width: 100%;
             max-width: 900px;
             background: #fff;
-            padding: 30px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -120,11 +152,11 @@
             height: 90vh;
         }
         h2 {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 500;
             color: #007bff;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
         #chat-box {
             flex-grow: 1;
@@ -133,31 +165,40 @@
             border-radius: 8px;
             background: #f8f9fa;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             flex-direction: column;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
         .message {
             padding: 12px;
-            margin: 10px 0;
+            margin: 8px 0;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.5;
             word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: auto;
         }
         .user {
             background: #007bff;
             color: white;
             text-align: right;
             align-self: flex-end;
-            max-width: 80%;
+            max-width: 75%;
+            align-items: flex-end;
         }
         .bot {
             background: #e3e4e8;
             color: #333;
             text-align: left;
             align-self: flex-start;
-            max-width: 80%;
+            max-width: 75%;
         }
         .code-block {
             background: #282c34;
@@ -165,25 +206,43 @@
             padding: 12px;
             font-family: 'Courier New', monospace;
             white-space: pre-wrap;
+            word-wrap: break-word;
             word-break: break-all;
-            margin: 12px 0;
+            margin: 8px 0;
             border-radius: 6px;
+            width: 100%;
             max-width: 100%;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .code-block pre {
+            margin: 0;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .text-explanation {
+            width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .input-area {
             display: flex;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         input, button {
-            padding: 14px;
+            padding: 12px;
             border-radius: 8px;
             font-size: 16px;
             border: 1px solid #ccc;
             outline: none;
+            min-height: 44px;
         }
-        input {
+        #user-input {
             flex: 1;
+            min-width: 150px;
         }
         button {
             background: #007bff;
@@ -191,8 +250,9 @@
             font-weight: bold;
             border: none;
             cursor: pointer;
+            transition: 0.2s;
         }
-        button:hover {
+        button:hover, button:active {
             background: #0056b3;
         }
         .copy-btn {
@@ -203,29 +263,190 @@
             border: none;
             cursor: pointer;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
+            min-height: 36px;
+            transition: 0.2s;
+            width: 100%;
         }
-        .copy-btn:hover {
+        .copy-btn:hover, .copy-btn:active {
             background: #218838;
         }
         .file-upload-area {
-            margin-top: 20px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
+        .file-upload-area input {
+            font-size: 14px;
+        }
+        .file-upload-area button {
+            width: 100%;
+        }
+
+        /* Mobile Styles */
         @media (max-width: 768px) {
+            body {
+                overflow: hidden;
+            }
+            #hamburger-menu {
+                display: block;
+            }
+            #close-sidebar {
+                display: block;
+            }
             #sidebar {
-                width: 200px;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                z-index: 1000;
+                transform: translateX(-100%);
+                border-radius: 0;
+            }
+            #sidebar.active {
+                transform: translateX(0);
+            }
+            #main-container {
+                padding: 60px 10px 10px 10px;
+            }
+            #chat-container {
+                padding: 15px;
+                height: calc(100vh - 70px);
+                border-radius: 8px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+            #chat-box {
+                margin-bottom: 10px;
+                padding: 10px;
             }
             .message {
-                max-width: 95%;
+                font-size: 13px;
+                padding: 10px;
+                margin: 6px 0;
+            }
+            .user {
+                max-width: 80%;
+            }
+            .bot {
+                max-width: 80%;
+            }
+            .input-area {
+                gap: 8px;
+            }
+            input, button {
+                padding: 10px;
+                font-size: 14px;
+                min-height: 40px;
+            }
+            .file-upload-area {
+                gap: 8px;
+                margin-top: 10px;
+            }
+            .file-upload-area input, .file-upload-area button {
+                font-size: 13px;
             }
             .delete-btn {
                 opacity: 1;
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+            .history-item {
+                min-height: 40px;
+                padding: 10px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #hamburger-menu {
+                padding: 10px 12px;
+                font-size: 18px;
+            }
+            #main-container {
+                padding: 50px 8px 8px 8px;
+            }
+            #chat-container {
+                padding: 12px;
+                height: calc(100vh - 60px);
+            }
+            h2 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+            #chat-box {
+                margin-bottom: 8px;
+                padding: 8px;
+            }
+            .message {
+                font-size: 12px;
+                padding: 8px;
+                margin: 4px 0;
+            }
+            .user {
+                max-width: 75%;
+            }
+            .bot {
+                max-width: 75%;
+            }
+            .code-block {
+                font-size: 11px;
+                padding: 8px;
+                margin: 6px 0;
+            }
+            input, button {
+                padding: 10px;
+                font-size: 13px;
+                min-height: 38px;
+            }
+            #user-input {
+                min-width: 100px;
+            }
+            #sidebar {
+                width: 100%;
+            }
+        }
+
+        /* Overlay for mobile */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        #sidebar-overlay.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar-overlay {
+                display: none !important;
+            }
+            #sidebar-overlay.active {
+                display: block !important;
             }
         }
     </style>
 </head>
 <body>
+    <button id="hamburger-menu" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
     <div id="sidebar">
+        <button id="close-sidebar" onclick="closeSidebar()">
+            <i class="fas fa-times"></i> Close
+        </button>
         <button id="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
         <div class="history-label">Chat History</div>
         <div id="chat-history"></div>
@@ -249,9 +470,8 @@
 
     <script>
         let currentSessionId = null;
-        let chatSessions = {}; // { sessionId: { title, messages, timestamp } }
+        let chatSessions = {};
 
-        // Initialize on page load
         function initializeApp() {
             loadChatHistory();
             if (Object.keys(chatSessions).length === 0) {
@@ -260,6 +480,16 @@
                 const firstSessionId = Object.keys(chatSessions)[0];
                 loadChat(firstSessionId);
             }
+        }
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("sidebar-overlay").classList.toggle("active");
+        }
+
+        function closeSidebar() {
+            document.getElementById("sidebar").classList.remove("active");
+            document.getElementById("sidebar-overlay").classList.remove("active");
         }
 
         function loadChatHistory() {
@@ -286,7 +516,10 @@
                 const titleSpan = document.createElement("div");
                 titleSpan.className = "history-title";
                 titleSpan.innerText = session.title || "Untitled Chat";
-                titleSpan.onclick = () => loadChat(sessionId);
+                titleSpan.onclick = () => {
+                    loadChat(sessionId);
+                    closeSidebar();
+                };
 
                 const deleteBtn = document.createElement("button");
                 deleteBtn.className = "delete-btn";
@@ -314,6 +547,7 @@
                     };
                     saveChatHistory();
                     loadChat(sessionId);
+                    closeSidebar();
                 })
                 .catch(error => console.error("Error creating new chat:", error));
         }
@@ -372,7 +606,7 @@
                             // This is code
                             const codeBlock = document.createElement("div");
                             codeBlock.className = "code-block";
-                            codeBlock.innerHTML = `<pre>${parts[i].trim()}</pre>`;
+                            codeBlock.innerHTML = `<pre>${escapeHtml(parts[i].trim())}</pre>`;
 
                             const copyButton = document.createElement("button");
                             copyButton.className = "copy-btn";
@@ -388,6 +622,7 @@
                         } else if (parts[i].trim()) {
                             // This is text explanation
                             const textSpan = document.createElement("div");
+                            textSpan.className = "text-explanation";
                             textSpan.innerText = parts[i].trim();
                             messageDiv.appendChild(textSpan);
                         }
@@ -400,7 +635,20 @@
             }
 
             chatBox.appendChild(messageDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            setTimeout(() => {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 0);
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
 
         function handleKeyPress(event) {
@@ -470,6 +718,8 @@
                 displayMessage("bot", message);
                 chatSessions[currentSessionId].messages.push({ type: "bot", content: message });
                 saveChatHistory();
+                fileInput.value = "";
+                document.getElementById("file-instructions").value = "";
             })
             .catch(error => {
                 console.error("Error:", error);
@@ -477,7 +727,6 @@
             });
         }
 
-        // Initialize app when page loads
         window.addEventListener("DOMContentLoaded", initializeApp);
     </script>
 </body>
